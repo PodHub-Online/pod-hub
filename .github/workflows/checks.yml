@@ -1,0 +1,33 @@
+# Runs on pull requests and on pushes to main: types, lint, the schedule tests, and a full build.
+# Nothing here touches the live app, the database, Eight Sleep or WHOOP.
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: pnpm lint
+        env:
+          SKIP_ENV_VALIDATION: "1"
+      - name: Schedule tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "1"
