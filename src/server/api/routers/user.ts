@@ -1202,9 +1202,9 @@ await logAppFailure(ctx.headers, "vacation", error);
         .execute();
     }),
 
-  // What the activity log table holds for you, to debug missing entries
+  // What the activity log table holds, to debug missing entries. Owner only.
   getLogDiagnostics: publicProcedure.query(async ({ ctx }) => {
-    const email = await requireEmail(ctx.headers);
+    const email = await requireOwner(ctx.headers);
     const mine = await db
       .select({ ranAt: cronRuns.ranAt, source: cronRuns.source, action: cronRuns.action })
       .from(cronRuns)
@@ -1212,17 +1212,16 @@ await logAppFailure(ctx.headers, "vacation", error);
       .orderBy(desc(cronRuns.ranAt))
       .limit(1)
       .execute();
-    // everyone's row counts only for the owner; others see just their own
-    const owner = await isOwner(email);
     const counts = await db
       .select({ email: cronRuns.email, source: cronRuns.source, n: sql<number>`count(*)::int` })
       .from(cronRuns)
-      .where(owner ? undefined : sql`lower(${cronRuns.email}) = lower(${email})`)
       .groupBy(cronRuns.email, cronRuns.source)
       .execute();
     const account = await db.query.users.findFirst({ where: eq(users.email, email) });
     const profile = await db.query.userTemperatureProfile.findFirst({ where: eq(userTemperatureProfile.email, email) });
-    const mask = (e: string) => (e.toLowerCase() === email.toLowerCase() ? "you" : `${e.slice(0, 2)}***@${e.split("@")[1] ?? ""}`);
+    // other people are shown as "person 1", "person 2"… (no email parts at all)
+    const others = [...new Set(counts.map((c) => c.email.toLowerCase()).filter((e) => e !== email.toLowerCase()))].sort();
+    const mask = (e: string) => (e.toLowerCase() === email.toLowerCase() ? "you" : `person ${others.indexOf(e.toLowerCase()) + 1}`);
     const dbNow = await db.execute(sql`select now()::text as now`);
     return {
       signedInAs: email,

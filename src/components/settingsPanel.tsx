@@ -13,6 +13,8 @@ import { QuickModes } from "~/components/quickModes";
 import { CapabilitiesCard } from "~/components/capabilitiesCard";
 import { haptic } from "~/lib/clientStorage";
 import {
+  ArrowUpRight,
+  Coffee,
   ChevronLeft,
   ChevronRight,
   Cpu,
@@ -49,6 +51,7 @@ import { InvitesPanel } from "~/components/invitesPanel";
 import { DisplayNameCard } from "~/components/displayNameCard";
 import { ScheduleTimezoneCard } from "~/components/scheduleZone";
 import { AdministratorPage } from "~/components/administratorPage"; // DEMO-WEATHER
+import { DONATE_URL, donateService } from "~/lib/donate";
 import { APP_NAME } from "~/lib/appName";
 
 function useCopy() {
@@ -466,12 +469,15 @@ function MenuRow({
   summary,
   tone,
   onClick,
+  external,
 }: {
   icon: React.ElementType;
   title: string;
   summary: string;
   tone?: "warn" | "good";
   onClick: () => void;
+  /** opens another site (shows an arrow out instead of a chevron) */
+  external?: boolean;
 }) {
   return (
     <button
@@ -496,7 +502,7 @@ function MenuRow({
           {summary}
         </span>
       </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+      {external ? <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" /> : <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />}
     </button>
   );
 }
@@ -788,6 +794,21 @@ const vacationSummary = account?.vacationMode
         <MenuRow icon={MessageSquare} title={tx("Send feedback")} summary={tx("Bugs, ideas, questions")} onClick={() => open("feedback")} />
         <MenuRow icon={Info} title={tx("About")} summary={tx("How it works and credits")} onClick={() => open("about")} />
       </div>
+      {/* an optional tip link, only when this copy of the app has one (NEXT_PUBLIC_DONATE_URL) */}
+      {DONATE_URL && (
+        <div className="divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200/80 bg-white/90 dark:divide-slate-800 dark:border-slate-800/80 dark:bg-slate-900/70">
+          <MenuRow
+            icon={Coffee}
+            title={tx("Support Pod Hub")}
+            summary={donateService(DONATE_URL) ? tx("Optional tip · opens PayPal") : tx("Optional tip · opens in your browser")}
+            external
+            onClick={() => {
+              const url = DONATE_URL;
+              if (url) window.open(url, "_blank", "noopener,noreferrer");
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

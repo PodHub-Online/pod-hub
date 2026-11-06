@@ -38,6 +38,7 @@ Pod Hub keeps your schedule in its own database. An external scheduler calls `/a
 2. **Environment variables** (Project → Settings → Environment Variables):
    - `CRON_SECRET`: a random string. It protects the cron endpoint.
    - `JWT_SECRET`: a random string. It signs login sessions.
+   - Optional: `NEXT_PUBLIC_DONATE_URL`, an https link (for example a PayPal.me address). When set, Settings shows a "Support" row that opens it. Leave it out for no link.
    - `APPROVED_EMAILS`: a comma-separated list of the Eight Sleep account emails allowed to sign in.
 3. **Database.** In the project's Storage tab, create a Postgres database and connect it. This adds `POSTGRES_URL` and `POSTGRES_URL_NON_POOLING`.
 4. **Build command.** Project → Settings → General → Build Command: `npm run build && npm run db:push`. Each deploy applies any new database changes in `drizzle/` (each file runs once and is remembered, so a normal deploy leaves the live tables alone).

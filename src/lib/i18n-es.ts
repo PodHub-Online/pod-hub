@@ -1,5 +1,8 @@
 // Spanish texts, keyed by the English text used in the app. Missing keys fall back to English.
 export const es: Record<string, string> = {
+  "Support Pod Hub": "Apoyar Pod Hub",
+  "Optional tip · opens PayPal": "Propina opcional · abre PayPal",
+  "Optional tip · opens in your browser": "Propina opcional · se abre en tu navegador",
   "WHOOP app keys": "Claves de la app de WHOOP",
   "Invites, statistics, cron job, WHOOP keys": "Invitaciones, estadísticas, tarea cron, claves de WHOOP",
   "Saved · edit keys and addresses": "Guardadas · editar claves y direcciones",
@@ -52,6 +55,9 @@ export const es: Record<string, string> = {
   "4 weeks": "4 semanas",
   "3 months": "3 meses",
   "What worked best": "Lo que mejor funcionó",
+  "No nights run by Pod Hub yet": "Aún no hay noches ejecutadas por Pod Hub",
+  "This fills in from the nights Pod Hub runs for you. Your Eight Sleep app's own schedule isn't counted. On the Schedule tab, save your three temperatures (you can import them from Eight Sleep) and switch on \"Use tonight\". The chart appears after a few nights.": "Se completa con las noches que Pod Hub ejecuta por ti. El horario de la app de Eight Sleep no cuenta. En la pestaña Horario, guarda tus tres temperaturas (puedes importarlas de Eight Sleep) y activa \"Usar esta noche\". El gráfico aparece tras unas noches.",
+  "{done} nights with a result so far. A result is your WHOOP recovery or Eight Sleep sleep score, added after each night.": "{done} noches con resultado por ahora. El resultado es tu recuperación de WHOOP o la puntuación de sueño de Eight Sleep, que se añade después de cada noche.",
   "Not enough nights yet. A temperature needs at least {n} nights with a result before it counts.": "Aún no hay suficientes noches. Una temperatura necesita al menos {n} noches con resultado para contar.",
   "{avg} on average": "{avg} de promedio",
   "{n} nights": "{n} noches",

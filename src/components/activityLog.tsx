@@ -666,7 +666,7 @@ export const ActivityLog: React.FC = () => {
           );
         })
       )}
-      <LogDiagnostics />
+      {owner && <LogDiagnostics />}
 
       {stats.avgDuration !== null && (
         <p className="text-center text-[11px] text-slate-400">

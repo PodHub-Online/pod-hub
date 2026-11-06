@@ -22,7 +22,15 @@ export async function fetchWithAuth<T extends z.ZodType<unknown, z.ZodTypeDef, u
   bump("eight_calls");
   if (!response.ok) {
     bump(`eight_error_${response.status}`);
-    throw new Error(`API request failed: ${response.status}`);
+    // say which request failed (path only, ids hidden) so the activity log can tell a 404 from a missing feature
+    let where = "";
+    try {
+      const u = new URL(url);
+      where = ` (${(options.method ?? "GET").toUpperCase()} ${u.host.split(".")[0]}${u.pathname.replace(/[0-9a-f-]{16,}/gi, ":id")})`;
+    } catch {
+      // keep the message short
+    }
+    throw new Error(`API request failed: ${response.status}${where}`);
   }
   // Successful writes sometimes come back with an empty body (e.g. 204); treat that as {}
   const text = await response.text();

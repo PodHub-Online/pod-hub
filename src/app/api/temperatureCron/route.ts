@@ -21,7 +21,6 @@ import { AFTER_WAKE_CHECK_MIN, currentCycle, decideStage, minutesSinceWake, need
 import { getSleepNights } from "~/server/eight/extras";
 import { getNightLevels, summarizeNights } from "~/server/nights";
 import { notifyOnce, notifyOwner } from "~/server/notices";
-import { pruneStats } from "~/server/stats";
 import { NEWS } from "~/lib/whatsNew";
 import { AuthError } from "~/server/eight/auth";
 import { accessRequests, cronRuns, events, feedback, nightLevels, whoopSleeps } from "~/server/db/schema";
@@ -171,6 +170,13 @@ export async function adjustTemperature(
       };
       const now = isTest ? testMode.currentTime : new Date();
       let sides: Awaited<ReturnType<typeof getSides>> | null = null;
+      // One extra look at the Pod, only when something failed: was it offline? (Not after sign-in or rate-limit errors.)
+      const withPodState = async (message: string, error: unknown) => {
+        const status = statusFromError(error);
+        if (status === 401 || status === 429 || !token) return message;
+        const h = await getPodHealth(token).catch(() => null);
+        return `${message} · Pod ${h ? (h.online === false ? "was OFFLINE (no Wi-Fi to Eight Sleep)" : h.online ? "was online" : "state unknown") : "state unknown"}`;
+      };
       // only the scheduled cron backs off; a check you start yourself always runs
       const backOff = async (error: unknown) => {
         const status = statusFromError(error);
@@ -315,10 +321,11 @@ export async function adjustTemperature(
           return;
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        let message = error instanceof Error ? error.message : String(error);
         console.error(`Error preparing schedule check for ${email}:`, message);
         if (!isTest) {
           await backOff(error);
+          message = await withPodState(message, error);
           const r = await recordActivity(email, { stage: "off", action: "error", message, source: trigger, caller });
           results.push({ email, stage: "off", action: "error", level: null, message, logged: r.ok, logError: r.error });
         }
@@ -479,10 +486,11 @@ export async function adjustTemperature(
           await log(stage, action, targetLevel, note);
           console.log(`[${email}] ${logSide}: stage=${stage} target=${targetLevel} action=${action}`);
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
+          let message = error instanceof Error ? error.message : String(error);
           console.error(`Error adjusting ${rowSide} side for ${email}:`, message);
           if (!isTest) {
             await backOff(error);
+            message = await withPodState(message, error);
             await log(stage, "error", null, message);
             if (stage !== "off") nightError = message;
           }
@@ -728,8 +736,6 @@ async function ownerNotices(results: CronUserResult[], people: number) {
     "Pod Hub today",
     `${people} people · ${errs[0]?.n ?? 0} errors in 24 h · ${waiting} request${waiting === 1 ? "" : "s"} waiting · ${fb[0]?.n ?? 0} new feedback`,
   );
-  // once a day is also when old statistics get cleaned up
-  if (sent || local.getHours() === 9) await pruneStats().catch(() => undefined);
 }
 
 /**

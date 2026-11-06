@@ -60,7 +60,18 @@ export const TemperatureHistory: React.FC = () => {
   };
 
   if (loading) return null;
-  if (rows.length === 0) return null;
+  if (rows.length === 0) {
+    // nothing recorded yet: say why, instead of hiding the card
+    return (
+      <Card>
+        <CardHeader icon={<History className="h-5 w-5" />} title={tx("Temperatures over time")} subtitle={tx("No nights run by Pod Hub yet")} />
+        <p className="rounded-2xl bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
+          {tx("This fills in from the nights Pod Hub runs for you. Your Eight Sleep app's own schedule isn't counted. On the Schedule tab, save your three temperatures (you can import them from Eight Sleep) and switch on \"Use tonight\". The chart appears after a few nights.")}
+        </p>
+      </Card>
+    );
+  }
+  const withResult = rows.filter((r) => r.hist.result !== null).length;
   const shown = all ? rows : rows.slice(0, 14);
   const pickedRow = rows.find((r) => r.hist.night === picked)?.hist ?? null;
 
@@ -96,7 +107,8 @@ export const TemperatureHistory: React.FC = () => {
         <p className="mb-2 text-xs font-extrabold">{tx("What worked best")}</p>
         {best.every((b) => !b.best) ? (
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {tx("Not enough nights yet. A temperature needs at least {n} nights with a result before it counts.", { n: MIN_NIGHTS_AT_TEMP })}
+            {tx("Not enough nights yet. A temperature needs at least {n} nights with a result before it counts.", { n: MIN_NIGHTS_AT_TEMP })}{" "}
+            {tx("{done} nights with a result so far. A result is your WHOOP recovery or Eight Sleep sleep score, added after each night.", { done: withResult })}
           </p>
         ) : (
           <ul className="space-y-1 text-xs">
